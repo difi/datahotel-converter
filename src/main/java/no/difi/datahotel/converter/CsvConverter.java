@@ -46,9 +46,18 @@ public class CsvConverter {
         csvWriter.setTextQualifier('"');
         csvWriter.setEscapeMode(CsvWriter.ESCAPE_MODE_BACKSLASH);
 
+        int counter = 0, cols = 0;
+
         String[] line;
         while (csvReader.readRecord()) {
             line = csvReader.getValues();
+            if (counter++ == 0) {
+                cols = line.length;
+            } else if (line.length != cols) {
+                System.err.println("Invalid amount of columns at line " + counter);
+                continue;
+            }
+
             csvWriter.writeRecord(line);
             csvWriter.flush();
         }
