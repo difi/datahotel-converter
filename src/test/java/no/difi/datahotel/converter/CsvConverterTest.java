@@ -13,11 +13,13 @@ import java.io.IOException;
 
 public class CsvConverterTest {
 
+    private static String newLine = System.getProperty("line.separator");
+
     @Test
     public void testComma() throws IOException, ParseException {
         CommandLine cmd = new BasicParser().parse(CsvConverter.options, new String[] {"-d", ",", "-c", "UTF-8"});
         String input = "Land,Country\nNorge,Norway\nSverige,Sweeden\n";
-        String output = "\"Land\";\"Country\"\r\n\"Norge\";\"Norway\"\r\n\"Sverige\";\"Sweeden\"\r\n";
+        String output = "\"Land\";\"Country\"" + newLine + "\"Norge\";\"Norway\"" +  newLine + "\"Sverige\";\"Sweeden\"" + newLine;
 
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(input.getBytes());
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -30,7 +32,7 @@ public class CsvConverterTest {
     @Test
     public void testSame() throws IOException, ParseException {
         CommandLine cmd = new BasicParser().parse(CsvConverter.options, new String[] {});
-        String string = "\"Land\";\"Country\"\r\n\"Norge\";\"Norway\"\r\n\"Sverige\";\"Sweeden\"\r\n";
+        String string = "\"Land\";\"Country\"" + newLine + "\"Norge\";\"Norway\"" + newLine + "\"Sverige\";\"Sweeden\"" + newLine;
 
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(string.getBytes());
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
