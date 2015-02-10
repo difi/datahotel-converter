@@ -51,13 +51,13 @@ public class CsvConverter {
     }
 
     public static void main(String[] args) throws IOException, ParseException {
-        CommandLine cmd = new BasicParser().parse(options, args);
+        CommandLine cmd = new GnuParser().parse(options, args);
         if (cmd.hasOption("help")) {
             HelpFormatter formatter = new HelpFormatter();
             formatter.printHelp("datahotel-converter", CsvConverter.options);
         } else {
             if (cmd.hasOption("name"))
-                System.out.println("=== " + cmd.getOptionValue("name") + " ===");
+                System.out.println("=== " + fix(cmd.getOptionValue("name")) + " ===");
 
             InputStream inputStream = cmd.hasOption('i') ? new FileInputStream(cmd.getOptionValue('i')) : System.in;
 
@@ -80,9 +80,13 @@ public class CsvConverter {
 
             if (outputFolder != null) {
                 try {
-                    generateFields(cmd, outputFile, new File(outputFolder, "/fields.xml"));
+                    if (cmd.hasOption("fields"))
+                        generateFields(cmd, outputFile, new File(outputFolder, "/fields.xml"));
+
                     outputFile.renameTo(new File(outputFolder, "/dataset.csv"));
-                    generateMeta(cmd, new File(outputFolder, "/meta.xml"));
+
+                    if (cmd.hasOption("meta"))
+                        generateMeta(cmd, new File(outputFolder, "/meta.xml"));
                 } catch (Exception e) {
                     System.err.println(e.getMessage());
                 }
@@ -111,7 +115,7 @@ public class CsvConverter {
                 if (line[0].charAt(0) == 65279)
                     line[0] = line[0].substring(1);
 
-                Map<String, String> fShortName = parseOptionArgs(cmd, "fshortname");
+                Map<String, String> fShortName = parseOptionArgs(cmd, "fshortname", false);
 
                 for (int i = 0; i < line.length; i++) {
                     line[i] = line[i].replace(" ", "_").replace(".", "_");
@@ -147,9 +151,9 @@ public class CsvConverter {
         List<String> groupable = cmd.hasOption(GROUPABLE) ? Arrays.asList(cmd.getOptionValue(GROUPABLE).split(",")) : new ArrayList<String>();
         List<String> searchable = cmd.hasOption(SEARCHABLE) ? Arrays.asList(cmd.getOptionValue(SEARCHABLE).split(",")) : new ArrayList<String>();
 
-        Map<String, String> fName = parseOptionArgs(cmd, "fname");
-        Map<String, String> fDescription = parseOptionArgs(cmd, "fdescription");
-        Map<String, String> fShortName = parseOptionArgs(cmd, "fshortname");
+        Map<String, String> fName = parseOptionArgs(cmd, "fname", true);
+        Map<String, String> fDescription = parseOptionArgs(cmd, "fdescription", true);
+        Map<String, String> fShortName = parseOptionArgs(cmd, "fshortname", false);
 
         Fields fields = new Fields();
         for (String h : header) {
@@ -171,11 +175,11 @@ public class CsvConverter {
         metadata.setUpdated(System.currentTimeMillis());
 
         if (cmd.hasOption("name"))
-            metadata.setName(cmd.getOptionValue("name"));
+            metadata.setName(fix(cmd.getOptionValue("name")));
         if (cmd.hasOption("url"))
             metadata.setUrl(cmd.getOptionValue("url"));
         if (cmd.hasOption("description"))
-            metadata.setDescription(cmd.getOptionValue("description"));
+            metadata.setDescription(fix(cmd.getOptionValue("description")));
         metadata.setActive(!cmd.hasOption("disabled"));
 
         writeXml(metadata, xmlTarget);
@@ -192,11 +196,21 @@ public class CsvConverter {
         out.close();
     }
 
-    private static Map<String, String> parseOptionArgs(CommandLine cmd, String option) {
+    private static Map<String, String> parseOptionArgs(CommandLine cmd, String option, boolean replaceUnderscore) {
         Map<String, String> result = new HashMap<String, String>();
-        if (cmd.hasOption(option))
-            for (String opt : cmd.getOptionValues(option))
-                result.put(opt.substring(0, opt.indexOf("=")), opt.substring(opt.indexOf("=") + 1));
+        if (cmd.hasOption(option)) {
+            for (String opt : cmd.getOptionValues(option)) {
+                String value = opt.substring(opt.indexOf("=") + 1);
+                if (replaceUnderscore)
+                    value = fix(value.replace("_", " "));
+                result.put(opt.substring(0, opt.indexOf("=")), value);
+            }
+        }
+
         return result;
+    }
+
+    private static String fix(String s) {
+        return s.replace("_", " ");
     }
 }
