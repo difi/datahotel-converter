@@ -16,6 +16,8 @@ public class Main {
                 System.out.println("Available converters: csv");
             } else if (args[0].equals("csv")) {
                 CsvConverter.main(arguments.toArray(new String[]{}));
+            } else if (args[0].equals("folder")) {
+                FolderConverter.main(arguments.toArray(new String[]{}));
             } else {
                 throw new Exception("Converter not found.");
             }
