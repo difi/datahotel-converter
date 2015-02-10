@@ -2,7 +2,6 @@ package no.difi.datahotel.converter;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.ParseException;
 import org.junit.Assert;
 import org.junit.Test;
