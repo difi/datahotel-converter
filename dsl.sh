@@ -52,6 +52,10 @@ source_delimiter () {
 	global="$global -d $1"
 }
 
+disable_duplicates () {
+    global="$global --removeDuplicates"
+}
+
 execute_url () { # name, path, url
 	curl -s $3 $cmdFix \
 	| sed '1 s/^\xef\xbb\xbf//' \
