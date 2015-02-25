@@ -30,6 +30,7 @@ public class CsvConverter {
         options.addOption(OptionBuilder.withArgName("charset").hasArg().withDescription("charset used in input" ).create('c'));
         options.addOption(OptionBuilder.withArgName("groupable").hasArg().withDescription("fields").create(GROUPABLE));
         options.addOption(OptionBuilder.withArgName("searchable").hasArg().withDescription("fields").create(SEARCHABLE));
+        options.addOption(OptionBuilder.withArgName("removeDuplicates").withLongOpt("removeDuplicates").create());
 
         // IO
         options.addOption(OptionBuilder.withArgName("file").hasArg().withDescription("input file").create("i"));
@@ -107,28 +108,33 @@ public class CsvConverter {
         int counter = 0, cols = 0;
 
         String[] line;
+        String last = null;
         while (csvReader.readRecord()) {
-            line = csvReader.getValues();
-            if (counter++ == 0) {
-                cols = line.length;
+            if (!cmd.hasOption("removeDuplicates") || !csvReader.getRawRecord().equals(last)) {
+                last = csvReader.getRawRecord();
 
-                if (line[0].charAt(0) == 65279)
-                    line[0] = line[0].substring(1);
+                line = csvReader.getValues();
+                if (counter++ == 0) {
+                    cols = line.length;
 
-                Map<String, String> fShortName = parseOptionArgs(cmd, "fshortname", false);
+                    if (line[0].charAt(0) == 65279)
+                        line[0] = line[0].substring(1);
 
-                for (int i = 0; i < line.length; i++) {
-                    line[i] = line[i].replace(" ", "_").replace(".", "_");
-                    if (fShortName.containsKey(line[i]))
-                        line[i] = fShortName.get(line[i]);
+                    Map<String, String> fShortName = parseOptionArgs(cmd, "fshortname", false);
+
+                    for (int i = 0; i < line.length; i++) {
+                        line[i] = line[i].replace(" ", "_").replace(".", "_");
+                        if (fShortName.containsKey(line[i]))
+                            line[i] = fShortName.get(line[i]);
+                    }
+                } else if (line.length != cols) {
+                    System.err.println("Invalid amount of columns at line " + counter);
+                    continue;
                 }
-            } else if (line.length != cols) {
-                System.err.println("Invalid amount of columns at line " + counter);
-                continue;
-            }
 
-            csvWriter.writeRecord(line);
-            csvWriter.flush();
+                csvWriter.writeRecord(line);
+                csvWriter.flush();
+            }
         }
 
         csvWriter.close();
