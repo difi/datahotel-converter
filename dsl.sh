@@ -52,7 +52,7 @@ source_delimiter () {
 	global="$global -d $1"
 }
 
-disable_duplicates () {
+remove_duplicates () {
     global="$global --removeDuplicates"
 }
 
