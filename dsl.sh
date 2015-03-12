@@ -48,6 +48,10 @@ enable_fields () {
 	if [ "$searchable" != "" ]; then cmdFields="$cmdFields --searchable $searchable"; fi
 }
 
+dataset_disabled () {
+	global="$global --disabled"
+}
+
 source_delimiter () {
 	global="$global -d $1"
 }
